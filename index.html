@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Right Now — Timetable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg: #14120f;
+    --panel: #1e1b17;
+    --panel-2: #262119;
+    --line: #35302a;
+    --text: #f5efe6;
+    --muted: #948b7d;
+    --amber: #f2a341;
+    --teal: #3fb8af;
+    --danger: #d9695a;
+    --radius: 14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{margin:0;padding:0; height:100%;}
+  body{
+    background: radial-gradient(1200px 700px at 50% -10%, #23201a 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    height: 100dvh;
+    overflow: hidden;
+  }
+  .mono{ font-family: 'JetBrains Mono', monospace; }
+  button{ font-family: inherit; }
+
+  /* ---------- LOGIN ---------- */
+  #login-screen{
+    height: 100dvh;
+    display:flex; align-items:center; justify-content:center;
+  }
+  #login-screen .wrap{ width: 100%; max-width: 380px; text-align:center; padding: 0 20px; }
+  .flap-mark{
+    display:inline-flex; align-items:center; gap:2px;
+    font-family:'JetBrains Mono', monospace;
+    font-size: 40px; font-weight:700; letter-spacing:2px;
+    color: var(--amber);
+    margin-bottom: 6px;
+  }
+  .flap-mark span{
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 2px 10px;
+  }
+  #login-screen h1{
+    font-size: 15px; font-weight:600; color:var(--muted);
+    letter-spacing:.08em; text-transform:uppercase;
+    margin: 0 0 28px;
+  }
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .field{ text-align:left; margin-bottom:14px; }
+  .field label{
+    display:block; font-size:12px; color:var(--muted);
+    margin-bottom:6px; letter-spacing:.03em;
+  }
+  input[type=password], input[type=text], input[type=time], textarea{
+    width:100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 12px 13px;
+    font-size: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+  }
+  input[type=text]{ font-family:'Inter', sans-serif; }
+  input:focus, textarea:focus{ border-color: var(--amber); }
+  .btn{
+    width:100%;
+    background: var(--amber);
+    color: #1a1400;
+    border:none;
+    border-radius: 8px;
+    padding: 13px 14px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing:.02em;
+    cursor:pointer;
+  }
+  .btn:focus-visible, button:focus-visible, input:focus-visible{
+    outline: 2px solid var(--teal); outline-offset:2px;
+  }
+  .btn.ghost{
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    font-weight:600;
+    width:auto;
+  }
+  .btn.small{ padding:10px 14px; font-size:13px; }
+  #login-error{ color: var(--danger); font-size:13px; margin-top:10px; min-height:16px; }
+  #login-note{ color: var(--muted); font-size:12px; margin-top:18px; line-height:1.5; }
+
+  /* ---------- FULL-SCREEN NOW VIEW ---------- */
+  #app-screen{ display:none; height:100dvh; position:relative; }
+
+  .now-topbar{
+    position:absolute; top:0; left:0; right:0;
+    display:flex; justify-content:space-between; align-items:center;
+    padding: max(18px, env(safe-area-inset-top)) 26px 0;
+    z-index:2;
+  }
+  .now-topbar .clock{
+    font-size: clamp(14px, 1.6vw, 20px);
+    color: var(--muted);
+    letter-spacing:.04em;
+  }
+  .now-topbar .top-actions{ display:flex; gap:10px; }
+  .icon-round{
+    background: var(--panel);
+    border:1px solid var(--line);
+    color: var(--muted);
+    width: 42px; height:42px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; cursor:pointer;
+  }
+  .icon-round:hover{ color: var(--text); }
+
+  .now-stage{
+    height: 100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    padding: 90px 6vw 70px;
+  }
+  .now-eyebrow{
+    font-size: clamp(13px, 1.6vw, 18px);
+    letter-spacing:.18em; text-transform:uppercase;
+    color: var(--amber); font-weight:700; margin-bottom: clamp(14px, 2.4vw, 26px);
+    font-family:'JetBrains Mono', monospace;
+  }
+  .now-label{
+    font-size: clamp(44px, 11vw, 150px);
+    font-weight:800;
+    line-height: 1.04;
+    letter-spacing:-.01em;
+    max-width: 1200px;
+    word-break: break-word;
+  }
+  .now-range{
+    margin-top: clamp(18px, 3vw, 34px);
+    font-size: clamp(16px, 2.1vw, 26px);
+    color: var(--muted);
+    font-family:'JetBrains Mono', monospace;
+  }
+  .next-line{
+    margin-top: clamp(16px, 2.6vw, 28px);
+    font-size: clamp(14px, 1.7vw, 20px);
+    color: var(--muted);
+  }
+  .next-line b{ color: var(--text); font-weight:700; }
+
+  .progress-track{
+    position:absolute; left:0; right:0; bottom:0;
+    height: 10px;
+    background: var(--panel-2);
+  }
+  .progress-fill{
+    height:100%; background: linear-gradient(90deg, var(--amber), var(--teal));
+    transition: width 1s linear;
+  }
+
+  /* ---------- EDIT SHEET ---------- */
+  #edit-sheet{
+    position:fixed; inset:0;
+    background: rgba(10,9,7,0.6);
+    display:none;
+    align-items:flex-end; justify-content:center;
+    z-index: 10;
+  }
+  #edit-panel{
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 720px;
+    max-height: 92dvh;
+    overflow-y: auto;
+    padding: 18px 22px calc(28px + env(safe-area-inset-bottom));
+  }
+  .sheet-handle{
+    width:44px; height:5px; background:var(--line); border-radius:3px;
+    margin: 0 auto 14px;
+  }
+  .sheet-header{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom: 16px;
+  }
+  .sheet-header h2{ font-size:18px; margin:0; font-weight:700; }
+
+  .section-title{
+    font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); font-weight:700; margin: 20px 0 10px;
+  }
+  .agenda{ display:flex; flex-direction:column; gap:8px; }
+  .agenda-row{
+    display:flex; align-items:center; gap:12px;
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 12px;
+  }
+  .agenda-row.active{ border-color: var(--amber); box-shadow: 0 0 0 1px var(--amber) inset; }
+  .agenda-row .time{
+    font-family:'JetBrains Mono', monospace; font-size:15px; color:var(--muted);
+    min-width:56px;
+  }
+  .agenda-row.active .time{ color: var(--amber); font-weight:700; }
+  .agenda-row .label{ flex:1; font-size:15px; }
+  .agenda-row .row-actions{ display:flex; gap:4px; }
+  .icon-btn{
+    background:none; border:none; color:var(--muted); cursor:pointer;
+    font-size:17px; padding:6px 8px; border-radius:6px;
+  }
+  .icon-btn:hover{ color: var(--text); background: var(--panel-2); }
+
+  .agenda-row .reorder{ display:flex; flex-direction:column; gap:2px; }
+  .reorder-btn{
+    background:none; border:none; color:var(--muted); cursor:pointer;
+    font-size:12px; line-height:1; padding:3px 6px; border-radius:5px;
+  }
+  .reorder-btn:hover{ color: var(--text); background: var(--panel-2); }
+  .reorder-btn:disabled{ opacity:.25; cursor:default; }
+  .reorder-btn:disabled:hover{ background:none; color:var(--muted); }
+
+  .agenda-row.editing{ flex-wrap:wrap; }
+  .agenda-row.editing input[type=time]{ width:110px; padding:8px 10px; font-size:14px; }
+  .agenda-row.editing input[type=text]{ flex:1; min-width:120px; padding:8px 10px; font-size:14px; }
+  .row-confirm{ display:flex; gap:8px; align-items:center; width:100%; }
+  .row-confirm span{ flex:1; font-size:13px; color:var(--muted); }
+  .row-confirm button{
+    border:none; border-radius:7px; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .row-confirm .confirm-yes{ background: var(--danger); color:#1a0d0a; }
+  .row-confirm .confirm-no{ background: var(--panel-2); color:var(--text); border:1px solid var(--line); }
+
+  #toast{
+    position:fixed; left:50%; bottom: calc(28px + env(safe-area-inset-bottom));
+    transform: translateX(-50%) translateY(20px);
+    background: var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:12px 18px; border-radius:10px; font-size:14px;
+    opacity:0; pointer-events:none; transition: opacity .25s, transform .25s;
+    z-index: 999; max-width: 88vw; text-align:center;
+  }
+  #toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce){
+    .progress-fill{ transition:none; }
+  }
+
+  .add-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .add-row input[type=time]{ flex: 0 0 120px; }
+  .add-row input[type=text]{ flex:1; min-width:150px; }
+  .add-row button{ flex:0 0 auto; }
+
+  .util-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  #import-box{ display:none; margin-top:10px; }
+  #import-box textarea{ min-height:100px; font-size:13px; resize:vertical; }
+  #import-box .hint{ color:var(--muted); font-size:12px; margin-top:6px; }
+  #file-input{ display:none; }
+
+  footer.note{
+    color: var(--muted); font-size:12px; margin-top:22px; line-height:1.6;
+    border-top: 1px solid var(--line); padding-top:14px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="wrap">
+      <div class="flap-mark"><span>N</span><span>O</span><span>W</span></div>
+      <h1>Right Now — your timetable, live</h1>
+      <div class="card">
+        <div class="field">
+          <label for="passcode-input" id="passcode-label">Passcode</label>
+          <input type="password" id="passcode-input" inputmode="numeric" autocomplete="off" placeholder="••••">
+        </div>
+        <button class="btn" id="login-btn">Enter</button>
+        <div id="login-error"></div>
+      </div>
+      <div id="login-note"></div>
+    </div>
+  </div>
+
+  <!-- FULL SCREEN NOW VIEW -->
+  <div id="app-screen">
+    <div class="now-topbar">
+      <div class="clock mono" id="clock"></div>
+      <div class="top-actions">
+        <button class="icon-round" id="edit-open-btn" title="Edit timetable" aria-label="Edit timetable">✎</button>
+        <button class="icon-round" id="logout-btn" title="Log out" aria-label="Log out">⏻</button>
+      </div>
+    </div>
+
+    <div class="now-stage">
+      <div class="now-eyebrow" id="now-eyebrow">NOW</div>
+      <div class="now-label" id="now-label">—</div>
+      <div class="now-range mono" id="now-range"></div>
+      <div class="next-line">Next: <b id="next-info">—</b></div>
+    </div>
+
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <!-- EDIT SHEET -->
+  <div id="edit-sheet">
+    <div id="edit-panel">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2>Edit timetable</h2>
+        <button class="icon-round" id="edit-close-btn" aria-label="Close">✕</button>
+      </div>
+
+      <div class="agenda" id="agenda-list"></div>
+
+      <div class="add-row">
+        <input type="time" id="add-time">
+        <input type="text" id="add-label" placeholder="What happens then?">
+        <button class="btn small" id="add-btn">Add</button>
+      </div>
+
+      <div class="section-title">Load a timetable</div>
+      <div class="util-row">
+        <button class="btn ghost small" id="upload-btn">Upload CSV / Excel / TXT / JSON</button>
+        <button class="btn ghost small" id="toggle-import-btn">Paste text</button>
+        <button class="btn ghost small" id="export-btn">Export current (JSON)</button>
+        <input type="file" id="file-input" accept=".csv,.xlsx,.xls,.txt,.json">
+      </div>
+
+      <div id="import-box">
+        <textarea id="import-text" placeholder="One item per line, e.g.&#10;09:00 core one&#10;12:30 core second&#10;18:15 UP GK BOOK + ANSWER WRITING&#10;&#10;(commas also work: 09:00, core one)"></textarea>
+        <div class="util-row">
+          <button class="btn small" id="import-apply-btn">Replace schedule</button>
+          <button class="btn ghost small" id="import-cancel-btn">Cancel</button>
+        </div>
+      </div>
+
+      <footer class="note">
+        Stored only in this browser (localStorage) on this iPad — no server, no account. A CSV or Excel file just needs a time column (HH:MM) and a label column, in that order; the first row is skipped if it looks like a header. Export occasionally as a backup.
+      </footer>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+(function(){
+  var LS_PASS = 'rn_passcode';
+  var LS_AUTH = 'rn_authed';
+  var LS_SCHEDULE = 'rn_schedule';
+
+  var loginScreen = document.getElementById('login-screen');
+  var appScreen = document.getElementById('app-screen');
+  var passInput = document.getElementById('passcode-input');
+  var passLabel = document.getElementById('passcode-label');
+  var loginBtn = document.getElementById('login-btn');
+  var loginError = document.getElementById('login-error');
+  var loginNote = document.getElementById('login-note');
+
+  function hasPasscode(){ return !!localStorage.getItem(LS_PASS); }
+
+  function refreshLoginCopy(){
+    if(hasPasscode()){
+      passLabel.textContent = 'Passcode';
+      passInput.placeholder = '••••';
+      loginBtn.textContent = 'Enter';
+      loginNote.textContent = 'Forgot it? There is no recovery — clear this browser\'s site data to reset and start over.';
+    } else {
+      passLabel.textContent = 'Set a passcode for this device';
+      passInput.placeholder = 'Choose a passcode';
+      loginBtn.textContent = 'Set passcode & enter';
+      loginNote.textContent = 'This just locks the app on this device — it is not sent anywhere.';
+    }
+  }
+
+  function doLogin(){
+    var val = passInput.value.trim();
+    loginError.textContent = '';
+    if(!val){ loginError.textContent = 'Enter a passcode.'; return; }
+    if(!hasPasscode()){
+      localStorage.setItem(LS_PASS, val);
+      sessionStorage.setItem(LS_AUTH, '1');
+      showApp();
+    } else {
+      if(val === localStorage.getItem(LS_PASS)){
+        sessionStorage.setItem(LS_AUTH, '1');
+        showApp();
+      } else {
+        loginError.textContent = 'Wrong passcode.';
+        passInput.value = '';
+      }
+    }
+  }
+  loginBtn.addEventListener('click', doLogin);
+  passInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+
+  document.getElementById('logout-btn').addEventListener('click', function(){
+    sessionStorage.removeItem(LS_AUTH);
+    passInput.value = '';
+    loginError.textContent = '';
+    refreshLoginCopy();
+    appScreen.style.display = 'none';
+    loginScreen.style.display = 'flex';
+    closeSheet();
+  });
+
+  function showApp(){
+    loginScreen.style.display = 'none';
+    appScreen.style.display = 'block';
+    renderAll();
+    setDefaultAddTime();
+    if(!schedule.length){
+      document.getElementById('edit-sheet').style.display = 'flex';
+    }
+  }
+
+  /* ---------- schedule storage ---------- */
+  function loadSchedule(){
+    var raw = localStorage.getItem(LS_SCHEDULE);
+    if(!raw){ return []; }
+    try{
+      var parsed = JSON.parse(raw);
+      if(Array.isArray(parsed)) return parsed;
+    }catch(e){}
+    return [];
+  }
+  function saveSchedule(items){
+    localStorage.setItem(LS_SCHEDULE, JSON.stringify(items));
+    return items;
+  }
+  var schedule = loadSchedule();
+
+  /* ---------- time helpers ---------- */
+  function toMinutes(t){
+    var parts = t.split(':');
+    return (parseInt(parts[0],10)*60) + parseInt(parts[1],10);
+  }
+  function nowMinutes(){
+    var d = new Date();
+    return d.getHours()*60 + d.getMinutes() + d.getSeconds()/60;
+  }
+  function fmtClock(){
+    var d = new Date();
+    var h = d.getHours(), m = d.getMinutes(), s = d.getSeconds();
+    function p(n){ return n<10 ? '0'+n : ''+n; }
+    return p(h)+':'+p(m)+':'+p(s);
+  }
+
+  function computeCurrentAndNext(items){
+    if(!items.length) return null;
+    var sorted = items.slice().sort(function(a,b){ return a.time.localeCompare(b.time); });
+    var nm = nowMinutes();
+    var curIdx = -1;
+    for(var i=0;i<sorted.length;i++){
+      if(toMinutes(sorted[i].time) <= nm) curIdx = i;
+    }
+    var current, next;
+    if(curIdx === -1){
+      current = sorted[sorted.length-1];
+      next = sorted[0];
+    } else {
+      current = sorted[curIdx];
+      next = sorted[(curIdx+1) % sorted.length];
+    }
+    var startMin = toMinutes(current.time);
+    var endMin = toMinutes(next.time);
+    var span = endMin - startMin;
+    if(span <= 0) span += 24*60;
+    var elapsed = nm - startMin;
+    if(elapsed < 0) elapsed += 24*60;
+    var pct = Math.max(0, Math.min(100, (elapsed/span)*100));
+    return { current: current, next: next, pct: pct, sorted: sorted, curIdx: curIdx===-1 ? sorted.length-1 : curIdx };
+  }
+
+  /* ---------- render ---------- */
+  var clockEl = document.getElementById('clock');
+  var eyebrowEl = document.getElementById('now-eyebrow');
+  var labelEl = document.getElementById('now-label');
+  var rangeEl = document.getElementById('now-range');
+  var fillEl = document.getElementById('progress-fill');
+  var nextInfoEl = document.getElementById('next-info');
+  var agendaEl = document.getElementById('agenda-list');
+
+  function renderNow(){
+    clockEl.textContent = fmtClock();
+    var r = computeCurrentAndNext(schedule);
+    if(!r){
+      labelEl.textContent = 'Nothing scheduled yet';
+      rangeEl.textContent = '';
+      nextInfoEl.textContent = '—';
+      fillEl.style.width = '0%';
+      return;
+    }
+    eyebrowEl.textContent = 'NOW · since ' + r.current.time;
+    labelEl.textContent = r.current.label || '(untitled)';
+    rangeEl.textContent = r.current.time + ' → ' + r.next.time;
+    fillEl.style.width = r.pct.toFixed(1) + '%';
+    nextInfoEl.textContent = r.next.time + ' — ' + (r.next.label || '(untitled)');
+
+    var rows = agendaEl.querySelectorAll('.agenda-row');
+    rows.forEach(function(row, i){
+      row.classList.toggle('active', i === r.curIdx);
+    });
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, function(c){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];
+    });
+  }
+
+  function renderAgenda(){
+    agendaEl.innerHTML = '';
+    if(!schedule.length){
+      var empty = document.createElement('div');
+      empty.style.color = 'var(--muted)';
+      empty.style.fontSize = '14px';
+      empty.style.padding = '10px 2px';
+      empty.textContent = 'No items yet — add one below, or upload a CSV/Excel/TXT/JSON file.';
+      agendaEl.appendChild(empty);
+      return;
+    }
+    schedule.forEach(function(item, idx){
+      var row = document.createElement('div');
+      row.className = 'agenda-row';
+      row.innerHTML =
+        '<span class="reorder">'+
+          '<button class="reorder-btn up-btn" aria-label="Move up"'+(idx===0?' disabled':'')+'>▲</button>'+
+          '<button class="reorder-btn down-btn" aria-label="Move down"'+(idx===schedule.length-1?' disabled':'')+'>▼</button>'+
+        '</span>'+
+        '<span class="time">'+item.time+'</span>'+
+        '<span class="label">'+escapeHtml(item.label)+'</span>'+
+        '<span class="row-actions">'+
+          '<button class="icon-btn edit-btn" title="Edit" aria-label="Edit">✎</button>'+
+          '<button class="icon-btn del-btn" title="Delete" aria-label="Delete">✕</button>'+
+        '</span>';
+      row.querySelector('.up-btn').addEventListener('click', function(){ moveItem(idx, -1); });
+      row.querySelector('.down-btn').addEventListener('click', function(){ moveItem(idx, 1); });
+      row.querySelector('.edit-btn').addEventListener('click', function(){ startEditRow(row, idx); });
+      row.querySelector('.del-btn').addEventListener('click', function(){ startDeleteRow(row, idx); });
+      agendaEl.appendChild(row);
+    });
+  }
+
+  function renderAll(){
+    renderAgenda();
+    renderNow();
+  }
+
+  function moveItem(idx, dir){
+    var target = idx + dir;
+    if(target < 0 || target >= schedule.length) return;
+    var tmp = schedule[idx];
+    schedule[idx] = schedule[target];
+    schedule[target] = tmp;
+    schedule = saveSchedule(schedule);
+    renderAll();
+  }
+
+  function startEditRow(row, idx){
+    var item = schedule[idx];
+    row.classList.add('editing');
+    row.innerHTML =
+      '<input type="time" class="edit-time-input" value="'+item.time+'">'+
+      '<input type="text" class="edit-label-input" value="'+escapeHtml(item.label)+'">'+
+      '<span class="row-actions">'+
+        '<button class="icon-btn save-edit-btn" title="Save" aria-label="Save">✓</button>'+
+        '<button class="icon-btn cancel-edit-btn" title="Cancel" aria-label="Cancel">✕</button>'+
+      '</span>';
+    var timeInput = row.querySelector('.edit-time-input');
+    var labelInput = row.querySelector('.edit-label-input');
+    row.querySelector('.save-edit-btn').addEventListener('click', function(){
+      var t = timeInput.value;
+      var l = labelInput.value.trim();
+      if(!t || !l){ toast('Enter both a time and a label.'); return; }
+      item.time = t;
+      item.label = l;
+      schedule = saveSchedule(schedule);
+      renderAll();
+      toast('Saved.');
+    });
+    row.querySelector('.cancel-edit-btn').addEventListener('click', function(){ renderAgenda(); });
+  }
+
+  function startDeleteRow(row, idx){
+    var item = schedule[idx];
+    row.innerHTML =
+      '<span class="row-confirm">'+
+        '<span>Delete "'+escapeHtml(item.label)+'" at '+item.time+'?</span>'+
+        '<button class="confirm-yes">Delete</button>'+
+        '<button class="confirm-no">Cancel</button>'+
+      '</span>';
+    row.querySelector('.confirm-yes').addEventListener('click', function(){
+      schedule.splice(idx, 1);
+      schedule = saveSchedule(schedule);
+      renderAll();
+      toast('Deleted.');
+    });
+    row.querySelector('.confirm-no').addEventListener('click', function(){ renderAgenda(); });
+  }
+
+  function pad(t){
+    var parts = t.split(':');
+    var h = parts[0].padStart(2,'0');
+    var m = (parts[1]||'00').padStart(2,'0');
+    return h+':'+m;
+  }
+
+  var toastTimer = null;
+  function toast(msg){
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove('show'); }, 2600);
+  }
+
+  function setDefaultAddTime(){
+    var el = document.getElementById('add-time');
+    if(!el.value){
+      var d = new Date();
+      function p(n){ return n<10 ? '0'+n : ''+n; }
+      el.value = p(d.getHours())+':'+p(d.getMinutes());
+    }
+  }
+
+  /* ---------- edit sheet open/close ---------- */
+  var editSheet = document.getElementById('edit-sheet');
+  document.getElementById('edit-open-btn').addEventListener('click', function(){
+    editSheet.style.display = 'flex';
+    setDefaultAddTime();
+  });
+  function closeSheet(){ editSheet.style.display = 'none'; }
+  document.getElementById('edit-close-btn').addEventListener('click', closeSheet);
+  editSheet.addEventListener('click', function(e){ if(e.target === editSheet) closeSheet(); });
+
+  /* ---------- add ---------- */
+  document.getElementById('add-btn').addEventListener('click', function(){
+    var t = document.getElementById('add-time').value;
+    var l = document.getElementById('add-label').value.trim();
+    if(!t || !l){ toast('Enter both a time and a label.'); return; }
+    schedule.push({time: t, label: l});
+    schedule = saveSchedule(schedule);
+    document.getElementById('add-label').value = '';
+    document.getElementById('add-time').value = '';
+    setDefaultAddTime();
+    renderAll();
+  });
+
+  /* ---------- paste-text import ---------- */
+  var importBox = document.getElementById('import-box');
+  document.getElementById('toggle-import-btn').addEventListener('click', function(){
+    importBox.style.display = importBox.style.display === 'block' ? 'none' : 'block';
+  });
+  document.getElementById('import-cancel-btn').addEventListener('click', function(){
+    importBox.style.display = 'none';
+  });
+  document.getElementById('import-apply-btn').addEventListener('click', function(){
+    var text = document.getElementById('import-text').value;
+    var parsed = parseScheduleText(text);
+    if(!parsed.length){ toast('No valid lines found. Use format: HH:MM Label (or HH:MM, Label)'); return; }
+    schedule = saveSchedule(parsed);
+    importBox.style.display = 'none';
+    document.getElementById('import-text').value = '';
+    renderAll();
+    toast('Schedule replaced.');
+  });
+
+  function parseScheduleText(text){
+    var lines = text.split('\n');
+    var out = [];
+    lines.forEach(function(line){
+      line = line.trim();
+      if(!line) return;
+      // "HH:MM, Label" or "HH:MM Label" or "HH:MM\tLabel"
+      var m = line.match(/^(\d{1,2}:\d{2})\s*[,\t]?\s*(.+)$/);
+      if(m){ out.push({time: pad(m[1]), label: m[2].trim()}); }
+    });
+    return out;
+  }
+
+  /* rows from parsed CSV/XLSX cells -> schedule items */
+  function rowsToSchedule(rows){
+    var out = [];
+    rows.forEach(function(row, idx){
+      if(!row || row.length < 2) return;
+      var timeCell = String(row[0]).trim();
+      var labelCell = String(row[1]).trim();
+      if(idx === 0 && !/^\d{1,2}:\d{2}$/.test(timeCell)){
+        // looks like a header row (e.g. "Time","Task") — skip it
+        return;
+      }
+      var timeMatch = timeCell.match(/^(\d{1,2}):(\d{2})/);
+      if(!timeMatch) return;
+      if(!labelCell) return;
+      out.push({ time: pad(timeMatch[0]), label: labelCell });
+    });
+    return out;
+  }
+
+  /* ---------- file upload: CSV / XLSX / XLS / TXT / JSON ---------- */
+  var fileInput = document.getElementById('file-input');
+  document.getElementById('upload-btn').addEventListener('click', function(){ fileInput.click(); });
+  fileInput.addEventListener('change', function(){
+    var file = fileInput.files[0];
+    if(!file) return;
+    var name = file.name.toLowerCase();
+
+    function applyItems(items, sourceLabel){
+      if(!items || !items.length){ toast('Could not read any schedule items from that file.'); return; }
+      schedule = saveSchedule(items);
+      renderAll();
+      toast('Loaded ' + items.length + ' item(s) from ' + sourceLabel + '.');
+    }
+
+    if(name.endsWith('.xlsx') || name.endsWith('.xls')){
+      var reader1 = new FileReader();
+      reader1.onload = function(e){
+        try{
+          var data = new Uint8Array(e.target.result);
+          var wb = XLSX.read(data, {type:'array'});
+          var sheet = wb.Sheets[wb.SheetNames[0]];
+          var rows = XLSX.utils.sheet_to_json(sheet, {header:1, raw:false});
+          var items = rowsToSchedule(rows);
+          applyItems(items, 'this Excel file');
+        }catch(err){
+          toast('Could not read that Excel file. Make sure it has a time column and a label column.');
+        }
+      };
+      reader1.readAsArrayBuffer(file);
+      fileInput.value = '';
+      return;
+    }
+
+    var reader2 = new FileReader();
+    reader2.onload = function(e){
+      var content = e.target.result;
+      var items = null;
+
+      if(name.endsWith('.json')){
+        try{
+          var json = JSON.parse(content);
+          if(Array.isArray(json)){
+            items = json.filter(function(it){ return it && it.time && it.label; })
+                         .map(function(it){ return {time: pad(String(it.time)), label: String(it.label)}; });
+          }
+        }catch(err){ /* fall through */ }
+      } else if(name.endsWith('.csv')){
+        var rows = content.split('\n').map(function(line){
+          return line.split(',').map(function(cell){ return cell.trim().replace(/^"|"$/g,''); });
+        }).filter(function(r){ return r.length && r[0] !== ''; });
+        items = rowsToSchedule(rows);
+      } else {
+        items = parseScheduleText(content);
+      }
+
+      applyItems(items, 'this file');
+    };
+    reader2.readAsText(file);
+    fileInput.value = '';
+  });
+
+  /* ---------- export ---------- */
+  document.getElementById('export-btn').addEventListener('click', function(){
+    var blob = new Blob([JSON.stringify(schedule, null, 2)], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'schedule.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  /* ---------- ticking ---------- */
+  setInterval(renderNow, 1000);
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden) renderNow();
+  });
+
+  /* ---------- boot ---------- */
+  refreshLoginCopy();
+  if(sessionStorage.getItem(LS_AUTH) === '1' && hasPasscode()){
+    showApp();
+  }
+})();
+</script>
+</body>
+</html>
