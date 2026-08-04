@@ -19,96 +19,23 @@
     --teal: #3fb8af;
     --danger: #d9695a;
     --radius: 14px;
+    --label-glow: 0 2px 30px rgba(242,163,65,0.16);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
   html,body{margin:0;padding:0; height:100%;}
   body{
-    background: radial-gradient(1200px 700px at 50% -10%, #23201a 0%, var(--bg) 55%);
+    background: radial-gradient(1200px 700px at 50% -10%, color-mix(in srgb, var(--panel-2) 70%, transparent) 0%, var(--bg) 55%);
     color: var(--text);
     font-family: 'Inter', -apple-system, sans-serif;
     height: 100dvh;
     overflow: hidden;
+    transition: background-color .3s ease, color .3s ease;
   }
   .mono{ font-family: 'JetBrains Mono', monospace; }
   button{ font-family: inherit; }
 
-  /* ---------- LOGIN ---------- */
-  #login-screen{
-    height: 100dvh;
-    display:flex; align-items:center; justify-content:center;
-  }
-  #login-screen .wrap{ width: 100%; max-width: 380px; text-align:center; padding: 0 20px; }
-  .flap-mark{
-    display:inline-flex; align-items:center; gap:2px;
-    font-family:'JetBrains Mono', monospace;
-    font-size: 40px; font-weight:700; letter-spacing:2px;
-    color: var(--amber);
-    margin-bottom: 6px;
-  }
-  .flap-mark span{
-    background: var(--panel-2);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 2px 10px;
-  }
-  #login-screen h1{
-    font-size: 15px; font-weight:600; color:var(--muted);
-    letter-spacing:.08em; text-transform:uppercase;
-    margin: 0 0 28px;
-  }
-  .card{
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 22px;
-  }
-  .field{ text-align:left; margin-bottom:14px; }
-  .field label{
-    display:block; font-size:12px; color:var(--muted);
-    margin-bottom:6px; letter-spacing:.03em;
-  }
-  input[type=password], input[type=text], input[type=time], textarea{
-    width:100%;
-    background: var(--bg);
-    border: 1px solid var(--line);
-    color: var(--text);
-    border-radius: 8px;
-    padding: 12px 13px;
-    font-size: 16px;
-    font-family: 'JetBrains Mono', monospace;
-    outline: none;
-  }
-  input[type=text]{ font-family:'Inter', sans-serif; }
-  input:focus, textarea:focus{ border-color: var(--amber); }
-  .btn{
-    width:100%;
-    background: var(--amber);
-    color: #1a1400;
-    border:none;
-    border-radius: 8px;
-    padding: 13px 14px;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing:.02em;
-    cursor:pointer;
-  }
-  .btn:focus-visible, button:focus-visible, input:focus-visible{
-    outline: 2px solid var(--teal); outline-offset:2px;
-  }
-  .btn.ghost{
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--line);
-    font-weight:600;
-    width:auto;
-  }
-  .btn.small{ padding:10px 14px; font-size:13px; }
-  #login-error{ color: var(--danger); font-size:13px; margin-top:10px; min-height:16px; }
-  #login-note{ color: var(--muted); font-size:12px; margin-top:18px; line-height:1.5; }
-
-  /* ---------- FULL-SCREEN NOW VIEW ---------- */
-  #app-screen{ display:none; height:100dvh; position:relative; }
-
+  /* ---------- TOP BAR ---------- */
+  #app-screen{ height:100dvh; position:relative; }
   .now-topbar{
     position:absolute; top:0; left:0; right:0;
     display:flex; justify-content:space-between; align-items:center;
@@ -128,18 +55,20 @@
     width: 42px; height:42px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
     font-size:18px; cursor:pointer;
+    transition: background-color .3s, border-color .3s, color .2s;
   }
   .icon-round:hover{ color: var(--text); }
 
+  /* ---------- NOW STAGE ---------- */
   .now-stage{
     height: 100%;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     text-align:center;
-    padding: 90px 6vw 70px;
+    padding: 90px 6vw 74px;
   }
   .now-eyebrow{
     font-size: clamp(13px, 1.6vw, 18px);
-    letter-spacing:.18em; text-transform:uppercase;
+    letter-spacing:.2em; text-transform:uppercase;
     color: var(--amber); font-weight:700; margin-bottom: clamp(14px, 2.4vw, 26px);
     font-family:'JetBrains Mono', monospace;
   }
@@ -150,6 +79,7 @@
     letter-spacing:-.01em;
     max-width: 1200px;
     word-break: break-word;
+    text-shadow: var(--label-glow);
   }
   .now-range{
     margin-top: clamp(18px, 3vw, 34px);
@@ -157,16 +87,26 @@
     color: var(--muted);
     font-family:'JetBrains Mono', monospace;
   }
+  .time-left{
+    margin-top: clamp(8px, 1.2vw, 14px);
+    font-size: clamp(13px, 1.5vw, 17px);
+    color: var(--teal);
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:.03em;
+    font-weight:600;
+  }
   .next-line{
-    margin-top: clamp(16px, 2.6vw, 28px);
+    margin-top: clamp(20px, 3vw, 34px);
     font-size: clamp(14px, 1.7vw, 20px);
     color: var(--muted);
+    padding-top: clamp(16px, 2.6vw, 26px);
+    border-top: 1px solid var(--line);
   }
   .next-line b{ color: var(--text); font-weight:700; }
 
   .progress-track{
     position:absolute; left:0; right:0; bottom:0;
-    height: 10px;
+    height: 8px;
     background: var(--panel-2);
   }
   .progress-fill{
@@ -247,6 +187,142 @@
   .row-confirm .confirm-yes{ background: var(--danger); color:#1a0d0a; }
   .row-confirm .confirm-no{ background: var(--panel-2); color:var(--text); border:1px solid var(--line); }
 
+  input[type=text], input[type=time], textarea{
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 12px 13px;
+    font-size: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    outline: none;
+  }
+  input[type=text]{ font-family:'Inter', sans-serif; }
+  input:focus, textarea:focus{ border-color: var(--amber); }
+
+  .btn{
+    background: var(--amber);
+    color: #1a1400;
+    border:none;
+    border-radius: 8px;
+    padding: 13px 14px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing:.02em;
+    cursor:pointer;
+  }
+  .btn:focus-visible, button:focus-visible, input:focus-visible{
+    outline: 2px solid var(--teal); outline-offset:2px;
+  }
+  .btn.ghost{
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    font-weight:600;
+  }
+  .btn.small{ padding:10px 14px; font-size:13px; }
+
+  .add-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .add-row input[type=time]{ flex: 0 0 120px; }
+  .add-row input[type=text]{ flex:1; min-width:150px; }
+  .add-row button{ flex:0 0 auto; }
+
+  .util-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+  #import-box{ display:none; margin-top:10px; }
+  #import-box textarea{ min-height:100px; font-size:13px; resize:vertical; width:100%; }
+  #file-input{ display:none; }
+
+  footer.note{
+    color: var(--muted); font-size:12px; margin-top:22px; line-height:1.6;
+    border-top: 1px solid var(--line); padding-top:14px;
+  }
+
+  /* ---------- STOPWATCH / TIMER OVERLAY ---------- */
+  #sw-overlay{
+    position:fixed; inset:0;
+    background: var(--bg);
+    display:none;
+    flex-direction:column;
+    z-index: 20;
+  }
+  .sw-topbar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding: max(18px, env(safe-area-inset-top)) 24px 0;
+  }
+  .sw-corner-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: clamp(11px, 1.3vw, 14px);
+    color: var(--muted);
+    letter-spacing:.06em;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 999px;
+    padding: 7px 14px;
+    max-width: 60vw;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .sw-corner-label b{ color: var(--amber); font-weight:600; }
+
+  .sw-body{
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap: clamp(20px, 4vh, 40px);
+    padding: 20px 6vw 60px;
+  }
+  .sw-tabs{
+    display:flex; gap:6px;
+    background: var(--panel);
+    border:1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px;
+  }
+  .sw-tab{
+    border:none; background:transparent; color:var(--muted);
+    padding: 9px 22px; border-radius:999px; font-size:14px; font-weight:700;
+    letter-spacing:.03em; cursor:pointer;
+  }
+  .sw-tab.active{ background: var(--amber); color:#1a1400; }
+
+  .sw-display{
+    font-family:'JetBrains Mono', monospace;
+    font-size: clamp(64px, 16vw, 200px);
+    font-weight:700;
+    letter-spacing:-.01em;
+    line-height:1;
+    font-variant-numeric: tabular-nums;
+    text-shadow: var(--label-glow);
+    transition: color .3s;
+  }
+  .sw-display.done{ color: var(--danger); animation: sw-pulse 1s ease-in-out infinite; }
+  @keyframes sw-pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.45; } }
+
+  .sw-setup{
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+  }
+  .sw-chip-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .sw-chip{
+    border:1px solid var(--line); background:var(--panel); color:var(--text);
+    border-radius:999px; padding:9px 18px; font-size:14px; font-weight:600; cursor:pointer;
+  }
+  .sw-chip:hover{ border-color: var(--amber); }
+  .sw-manual{ display:flex; align-items:center; gap:10px; }
+  .sw-manual button{
+    width:38px; height:38px; border-radius:50%;
+    border:1px solid var(--line); background:var(--panel); color:var(--text);
+    font-size:18px; cursor:pointer;
+  }
+  .sw-manual .sw-manual-value{
+    font-family:'JetBrains Mono', monospace; font-size:20px; min-width:64px; text-align:center;
+  }
+
+  .sw-controls{ display:flex; gap:14px; }
+  .sw-btn{
+    border:none; border-radius: 999px; padding: 15px 34px;
+    font-size:15px; font-weight:700; letter-spacing:.03em; cursor:pointer;
+  }
+  .sw-btn.primary{ background: var(--amber); color:#1a1400; }
+  .sw-btn.secondary{ background: var(--panel); color:var(--text); border:1px solid var(--line); }
+
   #toast{
     position:fixed; left:50%; bottom: calc(28px + env(safe-area-inset-bottom));
     transform: translateX(-50%) translateY(20px);
@@ -259,51 +335,20 @@
 
   @media (prefers-reduced-motion: reduce){
     .progress-fill{ transition:none; }
-  }
-
-  .add-row{ display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
-  .add-row input[type=time]{ flex: 0 0 120px; }
-  .add-row input[type=text]{ flex:1; min-width:150px; }
-  .add-row button{ flex:0 0 auto; }
-
-  .util-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-  #import-box{ display:none; margin-top:10px; }
-  #import-box textarea{ min-height:100px; font-size:13px; resize:vertical; }
-  #import-box .hint{ color:var(--muted); font-size:12px; margin-top:6px; }
-  #file-input{ display:none; }
-
-  footer.note{
-    color: var(--muted); font-size:12px; margin-top:22px; line-height:1.6;
-    border-top: 1px solid var(--line); padding-top:14px;
+    .sw-display.done{ animation:none; }
   }
 </style>
 </head>
 <body>
 
-  <!-- LOGIN -->
-  <div id="login-screen">
-    <div class="wrap">
-      <div class="flap-mark"><span>N</span><span>O</span><span>W</span></div>
-      <h1>Right Now — your timetable, live</h1>
-      <div class="card">
-        <div class="field">
-          <label for="passcode-input" id="passcode-label">Passcode</label>
-          <input type="password" id="passcode-input" inputmode="numeric" autocomplete="off" placeholder="••••">
-        </div>
-        <button class="btn" id="login-btn">Enter</button>
-        <div id="login-error"></div>
-      </div>
-      <div id="login-note"></div>
-    </div>
-  </div>
-
-  <!-- FULL SCREEN NOW VIEW -->
+  <!-- MAIN SCREEN -->
   <div id="app-screen">
     <div class="now-topbar">
       <div class="clock mono" id="clock"></div>
       <div class="top-actions">
+        <button class="icon-round" id="theme-toggle-btn" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+        <button class="icon-round" id="sw-open-btn" title="Stopwatch / Timer" aria-label="Stopwatch or Timer">⏱</button>
         <button class="icon-round" id="edit-open-btn" title="Edit timetable" aria-label="Edit timetable">✎</button>
-        <button class="icon-round" id="logout-btn" title="Log out" aria-label="Log out">⏻</button>
       </div>
     </div>
 
@@ -311,6 +356,7 @@
       <div class="now-eyebrow" id="now-eyebrow">NOW</div>
       <div class="now-label" id="now-label">—</div>
       <div class="now-range mono" id="now-range"></div>
+      <div class="time-left" id="time-left"></div>
       <div class="next-line">Next: <b id="next-info">—</b></div>
     </div>
 
@@ -351,8 +397,46 @@
       </div>
 
       <footer class="note">
-        Stored only in this browser (localStorage) on this iPad — no server, no account. A CSV or Excel file just needs a time column (HH:MM) and a label column, in that order; the first row is skipped if it looks like a header. Export occasionally as a backup.
+        Stored only in this browser (localStorage) on this device — no server, no account. A CSV or Excel file just needs a time column (HH:MM) and a label column, in that order; the first row is skipped if it looks like a header. Export occasionally as a backup.
       </footer>
+    </div>
+  </div>
+
+  <!-- STOPWATCH / TIMER OVERLAY -->
+  <div id="sw-overlay">
+    <div class="sw-topbar">
+      <div class="sw-corner-label mono" id="sw-corner-label">NOW · —</div>
+      <button class="icon-round" id="sw-close-btn" aria-label="Close">✕</button>
+    </div>
+
+    <div class="sw-body">
+      <div class="sw-tabs">
+        <button class="sw-tab active" id="sw-tab-stopwatch">Stopwatch</button>
+        <button class="sw-tab" id="sw-tab-timer">Timer</button>
+      </div>
+
+      <div class="sw-display mono" id="sw-display">00:00</div>
+
+      <!-- Timer duration setup (shown only before a timer run starts) -->
+      <div class="sw-setup" id="sw-setup" style="display:none;">
+        <div class="sw-chip-row">
+          <button class="sw-chip" data-min="5">5 min</button>
+          <button class="sw-chip" data-min="10">10 min</button>
+          <button class="sw-chip" data-min="15">15 min</button>
+          <button class="sw-chip" data-min="25">25 min</button>
+          <button class="sw-chip" data-min="45">45 min</button>
+        </div>
+        <div class="sw-manual">
+          <button id="sw-min-down" aria-label="Decrease minutes">−</button>
+          <span class="sw-manual-value mono" id="sw-min-value">25 min</span>
+          <button id="sw-min-up" aria-label="Increase minutes">+</button>
+        </div>
+      </div>
+
+      <div class="sw-controls">
+        <button class="sw-btn primary" id="sw-start-btn">Start</button>
+        <button class="sw-btn secondary" id="sw-reset-btn">Reset</button>
+      </div>
     </div>
   </div>
 
@@ -360,76 +444,46 @@
 
 <script>
 (function(){
-  var LS_PASS = 'rn_passcode';
-  var LS_AUTH = 'rn_authed';
   var LS_SCHEDULE = 'rn_schedule';
+  var LS_THEME = 'rn_theme';
 
-  var loginScreen = document.getElementById('login-screen');
-  var appScreen = document.getElementById('app-screen');
-  var passInput = document.getElementById('passcode-input');
-  var passLabel = document.getElementById('passcode-label');
-  var loginBtn = document.getElementById('login-btn');
-  var loginError = document.getElementById('login-error');
-  var loginNote = document.getElementById('login-note');
-
-  function hasPasscode(){ return !!localStorage.getItem(LS_PASS); }
-
-  function refreshLoginCopy(){
-    if(hasPasscode()){
-      passLabel.textContent = 'Passcode';
-      passInput.placeholder = '••••';
-      loginBtn.textContent = 'Enter';
-      loginNote.textContent = 'Forgot it? There is no recovery — clear this browser\'s site data to reset and start over.';
-    } else {
-      passLabel.textContent = 'Set a passcode for this device';
-      passInput.placeholder = 'Choose a passcode';
-      loginBtn.textContent = 'Set passcode & enter';
-      loginNote.textContent = 'This just locks the app on this device — it is not sent anywhere.';
+  /* ============== THEME ============== */
+  var THEMES = {
+    dark: {
+      bg:'#14120f', panel:'#1e1b17', panel2:'#262119', line:'#35302a',
+      text:'#f5efe6', muted:'#948b7d', amber:'#f2a341', teal:'#3fb8af', danger:'#d9695a',
+      glow:'0 2px 30px rgba(242,163,65,0.16)'
+    },
+    light: {
+      bg:'#faf7f1', panel:'#ffffff', panel2:'#f1ece1', line:'#e2dbc9',
+      text:'#231f18', muted:'#7c7364', amber:'#c9791f', teal:'#1f8f86', danger:'#c0453a',
+      glow:'0 2px 24px rgba(201,121,31,0.10)'
     }
+  };
+  function applyTheme(name){
+    var t = THEMES[name] || THEMES.dark;
+    var root = document.documentElement.style;
+    root.setProperty('--bg', t.bg);
+    root.setProperty('--panel', t.panel);
+    root.setProperty('--panel-2', t.panel2);
+    root.setProperty('--line', t.line);
+    root.setProperty('--text', t.text);
+    root.setProperty('--muted', t.muted);
+    root.setProperty('--amber', t.amber);
+    root.setProperty('--teal', t.teal);
+    root.setProperty('--danger', t.danger);
+    root.setProperty('--label-glow', t.glow);
+    document.getElementById('theme-toggle-btn').textContent = name === 'light' ? '☀️' : '🌙';
+    localStorage.setItem(LS_THEME, name);
   }
-
-  function doLogin(){
-    var val = passInput.value.trim();
-    loginError.textContent = '';
-    if(!val){ loginError.textContent = 'Enter a passcode.'; return; }
-    if(!hasPasscode()){
-      localStorage.setItem(LS_PASS, val);
-      sessionStorage.setItem(LS_AUTH, '1');
-      showApp();
-    } else {
-      if(val === localStorage.getItem(LS_PASS)){
-        sessionStorage.setItem(LS_AUTH, '1');
-        showApp();
-      } else {
-        loginError.textContent = 'Wrong passcode.';
-        passInput.value = '';
-      }
-    }
-  }
-  loginBtn.addEventListener('click', doLogin);
-  passInput.addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
-
-  document.getElementById('logout-btn').addEventListener('click', function(){
-    sessionStorage.removeItem(LS_AUTH);
-    passInput.value = '';
-    loginError.textContent = '';
-    refreshLoginCopy();
-    appScreen.style.display = 'none';
-    loginScreen.style.display = 'flex';
-    closeSheet();
+  var currentTheme = localStorage.getItem(LS_THEME) || 'dark';
+  applyTheme(currentTheme);
+  document.getElementById('theme-toggle-btn').addEventListener('click', function(){
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(currentTheme);
   });
 
-  function showApp(){
-    loginScreen.style.display = 'none';
-    appScreen.style.display = 'block';
-    renderAll();
-    setDefaultAddTime();
-    if(!schedule.length){
-      document.getElementById('edit-sheet').style.display = 'flex';
-    }
-  }
-
-  /* ---------- schedule storage ---------- */
+  /* ============== SCHEDULE STORAGE ============== */
   function loadSchedule(){
     var raw = localStorage.getItem(LS_SCHEDULE);
     if(!raw){ return []; }
@@ -445,7 +499,7 @@
   }
   var schedule = loadSchedule();
 
-  /* ---------- time helpers ---------- */
+  /* ============== TIME HELPERS ============== */
   function toMinutes(t){
     var parts = t.split(':');
     return (parseInt(parts[0],10)*60) + parseInt(parts[1],10);
@@ -484,17 +538,30 @@
     var elapsed = nm - startMin;
     if(elapsed < 0) elapsed += 24*60;
     var pct = Math.max(0, Math.min(100, (elapsed/span)*100));
-    return { current: current, next: next, pct: pct, sorted: sorted, curIdx: curIdx===-1 ? sorted.length-1 : curIdx };
+    var remainMin = span - elapsed;
+    return { current: current, next: next, pct: pct, sorted: sorted, curIdx: curIdx===-1 ? sorted.length-1 : curIdx, remainMin: remainMin };
   }
 
-  /* ---------- render ---------- */
+  function fmtRemaining(mins){
+    var totalSec = Math.max(0, Math.round(mins*60));
+    var h = Math.floor(totalSec/3600);
+    var m = Math.floor((totalSec%3600)/60);
+    var s = totalSec%60;
+    if(h > 0) return h+'h '+m+'m left';
+    if(m > 0) return m+'m left';
+    return s+'s left';
+  }
+
+  /* ============== MAIN RENDER ============== */
   var clockEl = document.getElementById('clock');
   var eyebrowEl = document.getElementById('now-eyebrow');
   var labelEl = document.getElementById('now-label');
   var rangeEl = document.getElementById('now-range');
+  var timeLeftEl = document.getElementById('time-left');
   var fillEl = document.getElementById('progress-fill');
   var nextInfoEl = document.getElementById('next-info');
   var agendaEl = document.getElementById('agenda-list');
+  var swCornerEl = document.getElementById('sw-corner-label');
 
   function renderNow(){
     clockEl.textContent = fmtClock();
@@ -502,15 +569,19 @@
     if(!r){
       labelEl.textContent = 'Nothing scheduled yet';
       rangeEl.textContent = '';
+      timeLeftEl.textContent = '';
       nextInfoEl.textContent = '—';
       fillEl.style.width = '0%';
+      swCornerEl.innerHTML = 'NOW · <b>—</b>';
       return;
     }
     eyebrowEl.textContent = 'NOW · since ' + r.current.time;
     labelEl.textContent = r.current.label || '(untitled)';
     rangeEl.textContent = r.current.time + ' → ' + r.next.time;
+    timeLeftEl.textContent = fmtRemaining(r.remainMin);
     fillEl.style.width = r.pct.toFixed(1) + '%';
     nextInfoEl.textContent = r.next.time + ' — ' + (r.next.label || '(untitled)');
+    swCornerEl.innerHTML = 'NOW · <b>' + escapeHtml(r.current.label || '(untitled)') + '</b>';
 
     var rows = agendaEl.querySelectorAll('.agenda-row');
     rows.forEach(function(row, i){
@@ -524,6 +595,7 @@
     });
   }
 
+  /* ============== AGENDA (edit sheet) ============== */
   function renderAgenda(){
     agendaEl.innerHTML = '';
     if(!schedule.length){
@@ -639,17 +711,16 @@
     }
   }
 
-  /* ---------- edit sheet open/close ---------- */
+  /* ============== EDIT SHEET open/close ============== */
   var editSheet = document.getElementById('edit-sheet');
   document.getElementById('edit-open-btn').addEventListener('click', function(){
     editSheet.style.display = 'flex';
     setDefaultAddTime();
   });
-  function closeSheet(){ editSheet.style.display = 'none'; }
-  document.getElementById('edit-close-btn').addEventListener('click', closeSheet);
-  editSheet.addEventListener('click', function(e){ if(e.target === editSheet) closeSheet(); });
+  document.getElementById('edit-close-btn').addEventListener('click', function(){ editSheet.style.display = 'none'; });
+  editSheet.addEventListener('click', function(e){ if(e.target === editSheet) editSheet.style.display = 'none'; });
 
-  /* ---------- add ---------- */
+  /* ============== ADD ============== */
   document.getElementById('add-btn').addEventListener('click', function(){
     var t = document.getElementById('add-time').value;
     var l = document.getElementById('add-label').value.trim();
@@ -662,7 +733,7 @@
     renderAll();
   });
 
-  /* ---------- paste-text import ---------- */
+  /* ============== PASTE-TEXT IMPORT ============== */
   var importBox = document.getElementById('import-box');
   document.getElementById('toggle-import-btn').addEventListener('click', function(){
     importBox.style.display = importBox.style.display === 'block' ? 'none' : 'block';
@@ -687,24 +758,19 @@
     lines.forEach(function(line){
       line = line.trim();
       if(!line) return;
-      // "HH:MM, Label" or "HH:MM Label" or "HH:MM\tLabel"
       var m = line.match(/^(\d{1,2}:\d{2})\s*[,\t]?\s*(.+)$/);
       if(m){ out.push({time: pad(m[1]), label: m[2].trim()}); }
     });
     return out;
   }
 
-  /* rows from parsed CSV/XLSX cells -> schedule items */
   function rowsToSchedule(rows){
     var out = [];
     rows.forEach(function(row, idx){
       if(!row || row.length < 2) return;
       var timeCell = String(row[0]).trim();
       var labelCell = String(row[1]).trim();
-      if(idx === 0 && !/^\d{1,2}:\d{2}$/.test(timeCell)){
-        // looks like a header row (e.g. "Time","Task") — skip it
-        return;
-      }
+      if(idx === 0 && !/^\d{1,2}:\d{2}$/.test(timeCell)){ return; }
       var timeMatch = timeCell.match(/^(\d{1,2}):(\d{2})/);
       if(!timeMatch) return;
       if(!labelCell) return;
@@ -713,7 +779,7 @@
     return out;
   }
 
-  /* ---------- file upload: CSV / XLSX / XLS / TXT / JSON ---------- */
+  /* ============== FILE UPLOAD (CSV / XLSX / TXT / JSON) ============== */
   var fileInput = document.getElementById('file-input');
   document.getElementById('upload-btn').addEventListener('click', function(){ fileInput.click(); });
   fileInput.addEventListener('change', function(){
@@ -775,7 +841,7 @@
     fileInput.value = '';
   });
 
-  /* ---------- export ---------- */
+  /* ============== EXPORT ============== */
   document.getElementById('export-btn').addEventListener('click', function(){
     var blob = new Blob([JSON.stringify(schedule, null, 2)], {type:'application/json'});
     var url = URL.createObjectURL(blob);
@@ -788,18 +854,145 @@
     URL.revokeObjectURL(url);
   });
 
-  /* ---------- ticking ---------- */
+  /* ============== STOPWATCH / TIMER ============== */
+  var swOverlay = document.getElementById('sw-overlay');
+  var swDisplay = document.getElementById('sw-display');
+  var swSetup = document.getElementById('sw-setup');
+  var swStartBtn = document.getElementById('sw-start-btn');
+  var swResetBtn = document.getElementById('sw-reset-btn');
+  var swTabStopwatch = document.getElementById('sw-tab-stopwatch');
+  var swTabTimer = document.getElementById('sw-tab-timer');
+  var swMinValueEl = document.getElementById('sw-min-value');
+
+  var swMode = 'stopwatch'; // 'stopwatch' | 'timer'
+  var swRunning = false;
+  var swInterval = null;
+
+  // stopwatch state
+  var swElapsedMs = 0;
+  var swStartTs = 0;
+
+  // timer state
+  var timerMinutes = 25;
+  var timerTotalMs = timerMinutes * 60000;
+  var timerRemainingMs = timerTotalMs;
+  var timerStartTs = 0;
+  var timerDone = false;
+
+  function fmtHMS(ms){
+    var totalSec = Math.max(0, Math.round(ms/1000));
+    var h = Math.floor(totalSec/3600);
+    var m = Math.floor((totalSec%3600)/60);
+    var s = totalSec%60;
+    function p(n){ return n<10 ? '0'+n : ''+n; }
+    return h>0 ? (p(h)+':'+p(m)+':'+p(s)) : (p(m)+':'+p(s));
+  }
+
+  function updateSwDisplay(){
+    if(swMode === 'stopwatch'){
+      var ms = swRunning ? (Date.now() - swStartTs + swElapsedMs) : swElapsedMs;
+      swDisplay.textContent = fmtHMS(ms);
+    } else {
+      var rem = swRunning ? (timerRemainingMs - (Date.now() - timerStartTs)) : timerRemainingMs;
+      if(rem <= 0){
+        rem = 0;
+        if(swRunning && !timerDone){
+          timerDone = true;
+          swRunning = false;
+          clearInterval(swInterval);
+          swStartBtn.textContent = 'Start';
+          swDisplay.classList.add('done');
+          if(navigator.vibrate){ navigator.vibrate([200,100,200]); }
+        }
+      }
+      swDisplay.textContent = fmtHMS(rem);
+    }
+  }
+
+  function switchTab(mode){
+    swMode = mode;
+    swTabStopwatch.classList.toggle('active', mode === 'stopwatch');
+    swTabTimer.classList.toggle('active', mode === 'timer');
+    swSetup.style.display = (mode === 'timer' && !swRunning && timerRemainingMs === timerTotalMs) ? 'flex' : 'none';
+    updateSwDisplay();
+  }
+  swTabStopwatch.addEventListener('click', function(){ if(!swRunning) switchTab('stopwatch'); });
+  swTabTimer.addEventListener('click', function(){ if(!swRunning) switchTab('timer'); });
+
+  function setTimerMinutes(mins){
+    timerMinutes = Math.max(1, mins);
+    timerTotalMs = timerMinutes * 60000;
+    timerRemainingMs = timerTotalMs;
+    swMinValueEl.textContent = timerMinutes + ' min';
+    updateSwDisplay();
+  }
+  document.querySelectorAll('.sw-chip').forEach(function(chip){
+    chip.addEventListener('click', function(){ setTimerMinutes(parseInt(chip.dataset.min,10)); });
+  });
+  document.getElementById('sw-min-up').addEventListener('click', function(){ setTimerMinutes(timerMinutes + 1); });
+  document.getElementById('sw-min-down').addEventListener('click', function(){ setTimerMinutes(timerMinutes - 1); });
+
+  swStartBtn.addEventListener('click', function(){
+    if(!swRunning){
+      if(swMode === 'stopwatch'){
+        swStartTs = Date.now();
+      } else {
+        if(timerDone){ timerRemainingMs = timerTotalMs; timerDone = false; swDisplay.classList.remove('done'); }
+        timerStartTs = Date.now();
+      }
+      swRunning = true;
+      swSetup.style.display = 'none';
+      swStartBtn.textContent = 'Pause';
+      swInterval = setInterval(updateSwDisplay, 200);
+    } else {
+      swRunning = false;
+      clearInterval(swInterval);
+      if(swMode === 'stopwatch'){
+        swElapsedMs = Date.now() - swStartTs + swElapsedMs;
+      } else {
+        timerRemainingMs = timerRemainingMs - (Date.now() - timerStartTs);
+      }
+      swStartBtn.textContent = 'Start';
+    }
+    updateSwDisplay();
+  });
+
+  swResetBtn.addEventListener('click', function(){
+    swRunning = false;
+    clearInterval(swInterval);
+    timerDone = false;
+    swDisplay.classList.remove('done');
+    swStartBtn.textContent = 'Start';
+    if(swMode === 'stopwatch'){
+      swElapsedMs = 0;
+    } else {
+      timerRemainingMs = timerTotalMs;
+      swSetup.style.display = 'flex';
+    }
+    updateSwDisplay();
+  });
+
+  document.getElementById('sw-open-btn').addEventListener('click', function(){
+    swOverlay.style.display = 'flex';
+    switchTab(swMode);
+  });
+  document.getElementById('sw-close-btn').addEventListener('click', function(){
+    swOverlay.style.display = 'none';
+  });
+
+  /* ============== TICKING ============== */
   setInterval(renderNow, 1000);
   document.addEventListener('visibilitychange', function(){
     if(!document.hidden) renderNow();
   });
 
-  /* ---------- boot ---------- */
-  refreshLoginCopy();
-  if(sessionStorage.getItem(LS_AUTH) === '1' && hasPasscode()){
-    showApp();
+  /* ============== BOOT ============== */
+  renderAll();
+  if(!schedule.length){
+    document.getElementById('edit-sheet').style.display = 'flex';
   }
 })();
 </script>
 </body>
 </html>
+
