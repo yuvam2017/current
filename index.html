@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -94,6 +96,15 @@
     font-family:'JetBrains Mono', monospace;
     letter-spacing:.03em;
     font-weight:600;
+  }
+  .time-left-clock{
+    margin-top: clamp(4px, 0.8vw, 8px);
+    font-size: clamp(22px, 4vw, 46px);
+    color: var(--amber);
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:.02em;
+    font-weight:700;
+    font-variant-numeric: tabular-nums;
   }
   .next-line{
     margin-top: clamp(20px, 3vw, 34px);
@@ -297,22 +308,48 @@
   @keyframes sw-pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.45; } }
 
   .sw-setup{
-    display:flex; flex-direction:column; align-items:center; gap:14px;
+    display:flex; flex-direction:column; align-items:center; gap:18px;
   }
-  .sw-chip-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .sw-chip-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:440px; }
   .sw-chip{
     border:1px solid var(--line); background:var(--panel); color:var(--text);
     border-radius:999px; padding:9px 18px; font-size:14px; font-weight:600; cursor:pointer;
   }
   .sw-chip:hover{ border-color: var(--amber); }
-  .sw-manual{ display:flex; align-items:center; gap:10px; }
-  .sw-manual button{
-    width:38px; height:38px; border-radius:50%;
-    border:1px solid var(--line); background:var(--panel); color:var(--text);
-    font-size:18px; cursor:pointer;
+  .sw-chip.active{ border-color: var(--amber); color: var(--amber); background: color-mix(in srgb, var(--amber) 12%, var(--panel)); }
+
+  /* --- wheel / dial picker --- */
+  .wheel-wrap{
+    position:relative;
+    display:flex; align-items:center; justify-content:center; gap:10px;
   }
-  .sw-manual .sw-manual-value{
-    font-family:'JetBrains Mono', monospace; font-size:20px; min-width:64px; text-align:center;
+  .wheel-col{
+    height: 168px; width: 88px;
+    overflow-y:auto;
+    scroll-snap-type: y mandatory;
+    scrollbar-width:none;
+    -ms-overflow-style:none;
+  }
+  .wheel-col::-webkit-scrollbar{ display:none; }
+  .wheel-pad{ height:56px; flex:none; }
+  .wheel-item{
+    height:56px; display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace; font-size:28px; font-weight:600;
+    scroll-snap-align:center; color: var(--text); opacity:.35;
+    transition: opacity .12s linear;
+    user-select:none;
+  }
+  .wheel-unit{
+    font-size:14px; color:var(--muted); font-weight:600; letter-spacing:.04em;
+  }
+  .wheel-highlight{
+    position:absolute; left:0; right:0; top:56px; height:56px;
+    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
+    pointer-events:none; border-radius:8px;
+    background: color-mix(in srgb, var(--amber) 6%, transparent);
+  }
+  .wheel-readout{
+    font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--muted); letter-spacing:.04em;
   }
 
   .sw-controls{ display:flex; gap:14px; }
@@ -357,6 +394,7 @@
       <div class="now-label" id="now-label">—</div>
       <div class="now-range mono" id="now-range"></div>
       <div class="time-left" id="time-left"></div>
+      <div class="time-left-clock mono" id="time-left-clock"></div>
       <div class="next-line">Next: <b id="next-info">—</b></div>
     </div>
 
@@ -420,17 +458,22 @@
       <!-- Timer duration setup (shown only before a timer run starts) -->
       <div class="sw-setup" id="sw-setup" style="display:none;">
         <div class="sw-chip-row">
-          <button class="sw-chip" data-min="5">5 min</button>
-          <button class="sw-chip" data-min="10">10 min</button>
           <button class="sw-chip" data-min="15">15 min</button>
           <button class="sw-chip" data-min="25">25 min</button>
           <button class="sw-chip" data-min="45">45 min</button>
+          <button class="sw-chip" data-min="60">1 h</button>
+          <button class="sw-chip" data-min="90">1.5 h</button>
+          <button class="sw-chip" data-min="120">2 h</button>
+          <button class="sw-chip" data-min="180">3 h</button>
         </div>
-        <div class="sw-manual">
-          <button id="sw-min-down" aria-label="Decrease minutes">−</button>
-          <span class="sw-manual-value mono" id="sw-min-value">25 min</span>
-          <button id="sw-min-up" aria-label="Increase minutes">+</button>
+        <div class="wheel-wrap">
+          <div class="wheel-highlight"></div>
+          <div class="wheel-col" id="wheel-hours"></div>
+          <div class="wheel-unit">h</div>
+          <div class="wheel-col" id="wheel-minutes"></div>
+          <div class="wheel-unit">m</div>
         </div>
+        <div class="wheel-readout mono" id="sw-min-value">25 min</div>
       </div>
 
       <div class="sw-controls">
@@ -552,12 +595,22 @@
     return s+'s left';
   }
 
+  function fmtRemainingClock(mins){
+    var totalSec = Math.max(0, Math.round(mins*60));
+    var h = Math.floor(totalSec/3600);
+    var m = Math.floor((totalSec%3600)/60);
+    var s = totalSec%60;
+    function p(n){ return n<10 ? '0'+n : ''+n; }
+    return p(h)+':'+p(m)+':'+p(s)+' left';
+  }
+
   /* ============== MAIN RENDER ============== */
   var clockEl = document.getElementById('clock');
   var eyebrowEl = document.getElementById('now-eyebrow');
   var labelEl = document.getElementById('now-label');
   var rangeEl = document.getElementById('now-range');
   var timeLeftEl = document.getElementById('time-left');
+  var timeLeftClockEl = document.getElementById('time-left-clock');
   var fillEl = document.getElementById('progress-fill');
   var nextInfoEl = document.getElementById('next-info');
   var agendaEl = document.getElementById('agenda-list');
@@ -570,6 +623,7 @@
       labelEl.textContent = 'Nothing scheduled yet';
       rangeEl.textContent = '';
       timeLeftEl.textContent = '';
+      timeLeftClockEl.textContent = '';
       nextInfoEl.textContent = '—';
       fillEl.style.width = '0%';
       swCornerEl.innerHTML = 'NOW · <b>—</b>';
@@ -579,6 +633,7 @@
     labelEl.textContent = r.current.label || '(untitled)';
     rangeEl.textContent = r.current.time + ' → ' + r.next.time;
     timeLeftEl.textContent = fmtRemaining(r.remainMin);
+    timeLeftClockEl.textContent = fmtRemainingClock(r.remainMin);
     fillEl.style.width = r.pct.toFixed(1) + '%';
     nextInfoEl.textContent = r.next.time + ' — ' + (r.next.label || '(untitled)');
     swCornerEl.innerHTML = 'NOW · <b>' + escapeHtml(r.current.label || '(untitled)') + '</b>';
@@ -919,18 +974,101 @@
   swTabStopwatch.addEventListener('click', function(){ if(!swRunning) switchTab('stopwatch'); });
   swTabTimer.addEventListener('click', function(){ if(!swRunning) switchTab('timer'); });
 
-  function setTimerMinutes(mins){
-    timerMinutes = Math.max(1, mins);
+  /* ---- wheel / dial picker for hours + minutes ---- */
+  var WHEEL_ITEM_H = 56;
+  var HOURS_MAX = 12;
+  var wheelHoursEl = document.getElementById('wheel-hours');
+  var wheelMinutesEl = document.getElementById('wheel-minutes');
+
+  function buildWheel(container, values, fmt){
+    var html = '<div class="wheel-pad"></div>';
+    values.forEach(function(v){ html += '<div class="wheel-item" data-val="'+v+'">'+fmt(v)+'</div>'; });
+    html += '<div class="wheel-pad"></div>';
+    container.innerHTML = html;
+  }
+  var hourValues = []; for(var hh=0; hh<=HOURS_MAX; hh++) hourValues.push(hh);
+  var minuteValues = []; for(var mm=0; mm<60; mm+=5) minuteValues.push(mm);
+  buildWheel(wheelHoursEl, hourValues, function(v){ return String(v); });
+  buildWheel(wheelMinutesEl, minuteValues, function(v){ return v<10 ? '0'+v : String(v); });
+
+  function fadeWheelItems(container){
+    var center = container.scrollTop + container.clientHeight/2;
+    container.querySelectorAll('.wheel-item').forEach(function(el){
+      var mid = el.offsetTop + WHEEL_ITEM_H/2;
+      var dist = Math.abs(mid - center);
+      var t = Math.max(0, 1 - dist/(WHEEL_ITEM_H*1.4));
+      el.style.opacity = (0.3 + 0.7*t).toFixed(2);
+      el.style.fontSize = (20 + 8*t).toFixed(0)+'px';
+    });
+  }
+  function currentWheelIndex(container){
+    return Math.round(container.scrollTop / WHEEL_ITEM_H);
+  }
+  function scrollWheelTo(container, idx, smooth){
+    container.scrollTo({ top: idx*WHEEL_ITEM_H, behavior: smooth ? 'smooth' : 'auto' });
+  }
+
+  var wheelSettleTimers = { hours:null, minutes:null };
+  function onWheelScroll(container, values, key, onSettle){
+    fadeWheelItems(container);
+    clearTimeout(wheelSettleTimers[key]);
+    wheelSettleTimers[key] = setTimeout(function(){
+      var idx = Math.max(0, Math.min(values.length-1, currentWheelIndex(container)));
+      scrollWheelTo(container, idx, true);
+      onSettle(values[idx]);
+    }, 110);
+  }
+
+  var selHours = 0, selMinutes = 25;
+  wheelHoursEl.addEventListener('scroll', function(){
+    onWheelScroll(wheelHoursEl, hourValues, 'hours', function(v){
+      selHours = v;
+      applyWheelSelection();
+    });
+  });
+  wheelMinutesEl.addEventListener('scroll', function(){
+    onWheelScroll(wheelMinutesEl, minuteValues, 'minutes', function(v){
+      selMinutes = v;
+      applyWheelSelection();
+    });
+  });
+
+  function applyWheelSelection(){
+    var total = selHours*60 + selMinutes;
+    if(total < 1) total = 1;
+    timerMinutes = total;
     timerTotalMs = timerMinutes * 60000;
     timerRemainingMs = timerTotalMs;
-    swMinValueEl.textContent = timerMinutes + ' min';
+    swMinValueEl.textContent = (selHours>0 ? selHours+'h ' : '') + selMinutes+'m';
+    updateActiveChip();
     updateSwDisplay();
   }
+
+  function updateActiveChip(){
+    document.querySelectorAll('.sw-chip').forEach(function(chip){
+      chip.classList.toggle('active', parseInt(chip.dataset.min,10) === timerMinutes);
+    });
+  }
+
+  function setTimerFromMinutes(totalMin, animate){
+    var h = Math.floor(totalMin/60);
+    var m = totalMin % 60;
+    h = Math.max(0, Math.min(HOURS_MAX, h));
+    var mIdx = minuteValues.indexOf(Math.round(m/5)*5 % 60);
+    if(mIdx < 0) mIdx = 0;
+    selHours = h;
+    selMinutes = minuteValues[mIdx];
+    scrollWheelTo(wheelHoursEl, hourValues.indexOf(h), animate);
+    scrollWheelTo(wheelMinutesEl, mIdx, animate);
+    applyWheelSelection();
+  }
+
   document.querySelectorAll('.sw-chip').forEach(function(chip){
-    chip.addEventListener('click', function(){ setTimerMinutes(parseInt(chip.dataset.min,10)); });
+    chip.addEventListener('click', function(){ setTimerFromMinutes(parseInt(chip.dataset.min,10), true); });
   });
-  document.getElementById('sw-min-up').addEventListener('click', function(){ setTimerMinutes(timerMinutes + 1); });
-  document.getElementById('sw-min-down').addEventListener('click', function(){ setTimerMinutes(timerMinutes - 1); });
+
+  // initial wheel position (25 min)
+  setTimeout(function(){ setTimerFromMinutes(25, false); }, 0);
 
   swStartBtn.addEventListener('click', function(){
     if(!swRunning){
@@ -995,4 +1133,3 @@
 </script>
 </body>
 </html>
-
