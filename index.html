@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -60,6 +58,7 @@
     transition: background-color .3s, border-color .3s, color .2s;
   }
   .icon-round:hover{ color: var(--text); }
+  .icon-round.active{ border-color: var(--amber); color: var(--amber); }
 
   /* ---------- NOW STAGE ---------- */
   .now-stage{
@@ -384,6 +383,7 @@
       <div class="clock mono" id="clock"></div>
       <div class="top-actions">
         <button class="icon-round" id="theme-toggle-btn" title="Toggle theme" aria-label="Toggle theme">🌙</button>
+        <button class="icon-round" id="countdown-toggle-btn" title="Add countdown to home screen" aria-label="Toggle countdown on home screen">⏳</button>
         <button class="icon-round" id="sw-open-btn" title="Stopwatch / Timer" aria-label="Stopwatch or Timer">⏱</button>
         <button class="icon-round" id="edit-open-btn" title="Edit timetable" aria-label="Edit timetable">✎</button>
       </div>
@@ -489,6 +489,7 @@
 (function(){
   var LS_SCHEDULE = 'rn_schedule';
   var LS_THEME = 'rn_theme';
+  var LS_SHOW_COUNTDOWN = 'rn_show_countdown';
 
   /* ============== THEME ============== */
   var THEMES = {
@@ -524,6 +525,21 @@
   document.getElementById('theme-toggle-btn').addEventListener('click', function(){
     currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
     applyTheme(currentTheme);
+  });
+
+  /* ============== HOME-SCREEN COUNTDOWN TOGGLE ============== */
+  var countdownToggleBtn = document.getElementById('countdown-toggle-btn');
+  var showCountdown = localStorage.getItem(LS_SHOW_COUNTDOWN) === '1';
+  function applyCountdownVisibility(){
+    document.getElementById('time-left-clock').style.display = showCountdown ? 'block' : 'none';
+    countdownToggleBtn.classList.toggle('active', showCountdown);
+    countdownToggleBtn.title = showCountdown ? 'Remove countdown from home screen' : 'Add countdown to home screen';
+  }
+  applyCountdownVisibility();
+  countdownToggleBtn.addEventListener('click', function(){
+    showCountdown = !showCountdown;
+    localStorage.setItem(LS_SHOW_COUNTDOWN, showCountdown ? '1' : '0');
+    applyCountdownVisibility();
   });
 
   /* ============== SCHEDULE STORAGE ============== */
